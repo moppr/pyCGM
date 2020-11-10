@@ -41,12 +41,13 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv,"h:i:o:s:e:c:f:p:v:x",["ifile=","ofile=","start=","end=","calctype=","singleframe=","nprocs=","vskfile=","staticinput="])
     except getopt.GetoptError:
-        print 'pyCGM.py -i <motionFile> -o <outputfile> -s <start> -e <end> -c <calctype> -sf <singleframe>'
+        print('pyCGM.py -i <motionFile> -o <outputfile> -s <start> -e <end> -c <calctype> -sf <singleframe>')
         sys.exit(2)
             
     for opt, arg in opts:
         if opt == '-h':
-                print 'pyCGM.py -i <motionFile> -o <outputfile> -s <start> -e <end> -c <calctype> -sf <singleframe> -p <procs>'
+                print(
+                    'pyCGM.py -i <motionFile> -o <outputfile> -s <start> -e <end> -c <calctype> -sf <singleframe> -p <procs>')
                 sys.exit()
         elif opt in ("-i", "--ifile"):
                 inputfile = arg
@@ -74,7 +75,7 @@ def main(argv):
     loadDataTime=time.time()-loadDataTime
     
     if len(motionData) == 0:
-        print "No Data Loaded"
+        print("No Data Loaded")
         sys.exit()
     
     if inputvsk != None:
@@ -91,8 +92,8 @@ def main(argv):
         calculateStaticTime=time.time()
         calibratedMeasurements = pycgmStatic.getStatic(staticData,vsk,flat_foot)
         calculateStaticTime=time.time()-calculateStaticTime
-        print calibratedMeasurements
-            
+        print(calibratedMeasurements)
+
     if calctype == 'single':
         multi=True
     else:
@@ -101,7 +102,7 @@ def main(argv):
     calculateAnglesTime=time.time()
     result=pycgmCalc.calcAngles(motionData,start=start,end=end,cores=procs,vsk=calibratedMeasurements,multiprocessing=True,nprocs=8,splitAnglesAxis=False,formatData=False)
     calculateAnglesTime=time.time()-calculateAnglesTime
-    print "CALCULATION TIME: ",calculateAnglesTime
+    print("CALCULATION TIME: ", calculateAnglesTime)
     savaDataTime=time.time()
     writeResult(result,outputfile)
     savaDataTime=time.time()-savaDataTime
@@ -110,7 +111,7 @@ def main(argv):
 
     printTimes=True
     if printTimes==True:
-        print "Total time = %.10fs"%(totalTime,)
+        print("Total time = %.10fs" % (totalTime,))
         totalTime=totalTime/100
         print "Total time to load data     \t= %.10fs\t%0.4f%%"%(loadStaticTime+loadVskTime+loadDataTime,(loadStaticTime+loadVskTime+loadDataTime)/totalTime)
         print "\tTime to load VSK            = %.10fs\t%0.4f%%"%(loadVskTime,(loadVskTime)/totalTime)
