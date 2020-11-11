@@ -5,8 +5,8 @@ import demo.pycgm_io as io
 class LowerBody:
 
     @staticmethod
-    def pelvis_joint_center(frame, markers, marker="A", vsk=None):
-        return frame[markers[marker]]
+    def pelvis_joint_center(frame, markers, vsk=None):
+        return frame[markers["A"]]
 
     @staticmethod
     def hip_joint_center(frame, pelvis_results):
