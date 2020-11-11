@@ -5,10 +5,10 @@ class CustomLowerBody(LowerBody):
 
     @staticmethod
     def pelvis_joint_center(frame):
-        return 2 + 3 + 4
+        return 10
 
 
-pycgm = pyCGM()
-print(pycgm.pelvis_jc)
+# pycgm = pyCGM()
+# pycgm.run()
 cpycgm = pyCGM(CustomLowerBody)
-print(cpycgm.pelvis_jc)
+cpycgm.run()
