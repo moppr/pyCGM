@@ -28,7 +28,7 @@ def pyCGM(lowerbody=LowerBody):
     class pyCGM(lowerbody):
 
         def __init__(self):
-            # Storing markers in a dicionary like this allows for easy translation between
+            # Storing markers in a dictionary like this allows for easy translation between
             # default pycgm behavior and any renaming that's been done
 
             # The purpose of this is to get pycgm to understand when an input differs
@@ -43,7 +43,7 @@ def pyCGM(lowerbody=LowerBody):
         def rename(self, old, new):
             self.markers[old] = new
 
-        def run(self, in_path=None):
+        def run(self, in_path=None, out_path=None, nprocs=1, start=None, end=None):
             self._load(in_path)
 
             # Static trials, which can't be done in parallel, would go here
@@ -58,19 +58,20 @@ def pyCGM(lowerbody=LowerBody):
                        self.hip_joint_center,
                        self.knee_joint_center)
 
-            results = calc.run_calculation(self.frames, methods, self.markers)
+            results = calc.run_calculation(self.frames, methods, self.markers, nprocs)
+            # Storing results in instance variables allows user to select isolated data later
             self.pelvis_jcs = [item[0] for item in results]
             self.hip_jcs = [item[1] for item in results]
             self.knee_jcs = [item[2] for item in results]
 
             print("results:", results)
 
-            self._write(str(results))
+            self._write(str(results), out_path)
 
         def _load(self, in_path=None):
             if not in_path:
                 in_path = "demo_data.csv"
-            # Storing frames in instance variable allows user to select isolated data
+            # Storing frames in instance variable allows user to select isolated data later
             self.frames = io.load_data(in_path)
 
         def _write(self, results, out_path=None):

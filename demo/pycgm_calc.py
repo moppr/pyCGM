@@ -1,4 +1,4 @@
-def run_calculation(frames, methods, markers):
+def run_calculation(frames, methods, markers, nprocs):
     results = []
 
     # This part can be be run in parallel
