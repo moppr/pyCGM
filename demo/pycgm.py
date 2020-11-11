@@ -1,5 +1,5 @@
-from demo.pycgmCalc_refactor_demo import *
-from demo.pycgmIO_refactor_demo import load_data
+import demo.pycgm_calc as calc
+import demo.pycgm_io as io
 
 
 class LowerBody:
@@ -20,14 +20,14 @@ class LowerBody:
 def pyCGM(lowerbody=LowerBody):
     class pyCGM(lowerbody):
         
-        def run(self, path=None):
-            if not path:
-                path = "data_refactor_demo.csv"
-            self.frames = load_data(path)
+        def run(self, in_path=None):
+            if not in_path:
+                in_path = "demo_data.csv"
+            self.frames = io.load_data(in_path)
 
             methods = [self.pelvis_joint_center, self.hip_joint_center, self.knee_joint_center]
 
-            results = do_calc(self.frames, methods)
+            results = calc.do_calc(self.frames, methods)
             self.pelvis_jc, self.hip_jc, self.knee_jc = results[0]
 
             print([item for item in results])

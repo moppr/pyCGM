@@ -1,4 +1,4 @@
-from demo.pyCGM_refactor_demo import LowerBody, pyCGM
+from demo.pycgm import LowerBody, pyCGM
 
 
 class CustomLowerBody(LowerBody):
