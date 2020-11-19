@@ -1,5 +1,5 @@
 import numpy as np
-from demo.IO import *
+from demo.IO import trials
 
 
 class CGM:
@@ -15,14 +15,21 @@ class CGM:
         # after loading, figure out default marker mapping
 
     def run(self, trial):
-        data, markers = trials[trial]
+        data, markers = trials[trial]  # Substitute for loading in data from c3d
+
+        # Associate each marker name with its index
         for i, marker in enumerate(markers):
             self.marker_index[marker] = i
 
         result = calc(data, (self.pelvis_calc, self.hip_calc, self.knee_calc), self.mapping, self.marker_index)
         self.all_angles = result
 
-    def map(self, old, new):
+    def map(self, old=None, new=None, dic=None):
+        if dic and type(dic) == dict:
+            self.mapping.update(dic)
+            return
+        if not (old and new):  # Both must exist if dict is not used
+            return
         self.mapping[old] = new
         self.mapping[new] = new
 
@@ -53,7 +60,7 @@ class CGM:
 
 def calc(data, methods, mapping, mi):
     pel, hip, kne = methods
-    result = np.zeros((5, len(mi), 3), dtype=int)
+    result = np.zeros((len(data), len(mi), 3), dtype=int)
     for i, frame in enumerate(data):
         result[i][0] = pel(frame, mapping, mi)
         result[i][1] = hip(frame, mapping, mi)
