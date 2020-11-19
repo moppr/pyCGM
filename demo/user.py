@@ -28,8 +28,15 @@ subject2.run(2)
 print("Pelvis angles at each frame\n", subject2.pelvis_angles)
 
 
+# Subclass that changes calculation behavior and uses custom marker name in that calculation
+class CGM3(CGM):
+    @staticmethod
+    def pelvis_calc(frame, mapping, mi):
+        return frame[mi[mapping["PELVIS"]]] + frame[mi[mapping["RANK"]]]
+
+
 # Demonstrates renaming some markers one at a time and adding a new marker w/ custom calculation
-subject3 = CGM1()
+subject3 = CGM3()
 subject3.map("PELV", "PELVIS")
 subject3.map("RKNE", "RKNEE")
 subject3.map("LKNE", "LKNEE")
