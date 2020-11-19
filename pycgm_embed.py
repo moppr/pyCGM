@@ -55,7 +55,7 @@ def main():
     #calSM['GCS'] = pycgmStatic.rotmat(x=0,y=0,z=180) 
     #calSM['HeadOffset'] = 0  #example of manually modifying a subject measurement
     
-    kinematics,joint_centers=pycgmCalc.calcAngles(motionData,start=None,end=None,vsk=calSM,splitAnglesAxis=False,formatData=False,returnjoints=True)
+    kinematics,joint_centers=pycgmCalc.calcAngles(motionData,start=0,end=1,vsk=calSM,splitAnglesAxis=False,formatData=False,returnjoints=True)
     kinetics=pycgmCalc.calcKinetics(joint_centers, calSM['Bodymass'])
     
     #Write the results to a csv file, if wanted, 

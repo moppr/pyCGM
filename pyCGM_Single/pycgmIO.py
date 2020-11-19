@@ -352,6 +352,7 @@ def loadC3D(filename):
     counter = 0
     data_length = reader.last_frame() - reader.first_frame()
     markers=[str(label.rstrip()) for label in labels]
+    #print(" ".join(markers))
     
     for frame_no, points, analog in reader.read_frames(True,True):
         for label, point in zip(markers, points):
@@ -672,6 +673,12 @@ def loadData(filename,rawData=True):
                 for frame in data:
                     for key in keys:
                         frame.setdefault(key,[np.nan,np.nan,np.nan])
+                frame = data[0]
+                #print(list(frame.keys()))
+                # normal
+                #print(frame['LHEE'], frame['C7'], frame['RFIN'])
+                # weird
+                #print(frame['RBAK'], frame['LHipAngles'], frame['LCLO'], frame['RTOO'], frame['RFootProgressAngles'])
                 return data
                 
         elif str(filename).endswith('.csv'):

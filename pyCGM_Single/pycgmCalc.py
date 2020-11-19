@@ -154,7 +154,10 @@ def calcAngles(data,**kargs):
     >>> around(kinematics[0][0], 8)
     -0.45646046
     """
-
+    frm = data[0]
+    print(frm)
+    print(frm.keys())
+    print(frm.values())
     start=0
     end=len(data)
     vsk=None
