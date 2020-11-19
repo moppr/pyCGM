@@ -25,13 +25,14 @@ class CGM:
         self.all_angles = result
 
     def map(self, old=None, new=None, dic=None):
-        if dic and type(dic) == dict:
+        if dic and type(dic) == dict:  # Entire dictionary given
             self.mapping.update(dic)
             return
-        if not (old and new):  # Both must exist if dict is not used
-            return
-        self.mapping[old] = new
-        self.mapping[new] = new
+        if old and new:  # Old and new marker name provided
+            self.mapping[old] = new
+            self.mapping[new] = new
+        elif old and not new:  # Only one marker name provided
+            self.mapping[old] = old  # Interpret it as adding a new marker
 
     @property
     def pelvis_angles(self):
