@@ -1,82 +1,61 @@
-import demo.pycgm_calc as calc
-import demo.pycgm_io as io
+import numpy as np
 
 
-class LowerBody:
+class CGM:
+
+    def __init__(self):
+        self.all_angles = None
+        self.all_axes = None
+        # Default marker mapping probably has to be determined when c3d is loaded (this is placeholder)
+        self.mapping = {"PELV": 0, "RHIP": 1, "LHIP": 2, "RKNE": 3, "LKNE": 4}
+        # load(input_path)
+        # after loading, figure out default marker mapping
+
+    def run(self):
+        data = np.array([[[0, 1, 2], [10, 10, 10], [8, 8, 8], [5, 5, 5], [5, 5, 5]],
+                         [[3, 4, 5], [9, 9, 9], [7, 7, 7], [4, 4, 4], [4, 4, 4]],
+                         [[6, 7, 8], [8, 8, 8], [6, 6, 6], [3, 3, 3], [3, 3, 3]],
+                         [[5, 6, 7], [8, 8, 8], [4, 4, 4], [2, 2, 2], [2, 2, 2]],
+                         [[4, 5, 6], [8, 8, 8], [2, 2, 2], [0, 0, 0], [0, 0, 0]]])
+        result = calc(data, (self.pelvis_calc, self.hip_calc, self.knee_calc), self.mapping)
+        self.all_angles = result
+
+    def rename(self, old, new):
+        # Intentionally don't pop old, default code may reference old name
+        # This would actually be mapping[old] = mapping[new] if default was
+        # determined from the c3d input file
+        self.mapping[new] = self.mapping[old]
+
+    @property
+    def pelvis_angles(self):
+        return self.all_angles[0:, 0]
+
+    @property
+    def hip_angles(self):
+        return self.all_angles[0:, 1]
+
+    @property
+    def knee_angles(self):
+        return self.all_angles[0:, 2]
 
     @staticmethod
-    def pelvis_joint_center(frame, markers, vsk=None):
-        # Demonstrates obtaining some value based on frame input
-        # markers["A"] is used instead of simply "A" in the event that the user
-        # needed to rename a marker
-        return frame[markers["A"]]
+    def pelvis_calc(frame, mapping):
+        return frame[mapping["PELV"]]
 
     @staticmethod
-    def hip_joint_center(frame, pelvis_results):
-        # Demonstrates that subsequent joint center calculations rely on result of previous step
-        return pelvis_results + 1
+    def hip_calc(frame, mapping):
+        return np.mean(np.array([frame[mapping["RHIP"]], frame[mapping["LHIP"]]]), axis=0)
 
     @staticmethod
-    def knee_joint_center(frame, hip_results):
-        return hip_results + 1
+    def knee_calc(frame, mapping):
+        return frame[mapping["RKNE"]] - frame[mapping["LKNE"]]
 
 
-def pyCGM(lowerbody=LowerBody):
-    # There is no way to have a "default parent" when inheriting, so the next best thing
-    # is to define the class inside a function that accepts class in its default parameter
-
-    class pyCGM(lowerbody):
-
-        def __init__(self):
-            # Storing markers in a dictionary like this allows for easy translation between
-            # default pycgm behavior and any renaming that's been done
-
-            # The purpose of this is to get pycgm to understand when an input differs
-            # from its expected input, i.e. if pycgm's "A" marker was named "X" in the user's input,
-            # pycgm would know to look up "X" from its frame dictionary and the user could
-            # continue referring to that marker as "X" if they looked it up in the dict themselves
-            self.markers = {"A": "A", "B": "B", "C": "C"}
-            self.pelvis_jcs = None
-            self.hip_jcs = None
-            self.knee_jcs = None
-
-        def rename(self, old, new):
-            self.markers[old] = new
-
-        def run(self, in_path=None, out_path=None, nprocs=1, start=None, end=None):
-            self._load(in_path)
-
-            # Static trials, which can't be done in parallel, would go here
-            # Their methods can similarly be defined and overridden similar to dynamic examples
-
-            # Despite having the "self" prefix, these methods are actually being passed
-            # as functions (no overhead) rather than bound methods of an instance (with overhead)
-            # because they were defined as static methods
-            # Defining them as static is safe because the calculations don't rely on anything
-            # from the instance anyway, all they need is the input of the frames
-            methods = (self.pelvis_joint_center,
-                       self.hip_joint_center,
-                       self.knee_joint_center)
-
-            results = calc.run_calculation(self.frames, methods, self.markers, nprocs)
-            # Storing results in instance variables allows user to select isolated data later
-            self.pelvis_jcs = [item[0] for item in results]
-            self.hip_jcs = [item[1] for item in results]
-            self.knee_jcs = [item[2] for item in results]
-
-            print("results:", results)
-
-            self._write(str(results), out_path)
-
-        def _load(self, in_path=None):
-            if not in_path:
-                in_path = "demo_data.csv"
-            # Storing frames in instance variable allows user to select isolated data later
-            self.frames = io.load_data(in_path)
-
-        def _write(self, results, out_path=None):
-            if not out_path:
-                out_path = "pycgm_results.csv"
-            io.write_data(out_path, results)
-
-    return pyCGM()
+def calc(data, methods, mapping):
+    pel, hip, kne = methods
+    result = np.zeros((5, 3, 3), dtype=int)
+    for i, frame in enumerate(data):
+        result[i][0] = pel(frame, mapping)
+        result[i][1] = hip(frame, mapping)
+        result[i][2] = kne(frame, mapping)
+    return result
