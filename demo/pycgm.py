@@ -7,12 +7,9 @@ class CGM:
     def __init__(self):
         self.all_angles = None
         self.all_axes = None
-        # Default marker mapping probably has to be determined when c3d is loaded (this is placeholder)
         self.mapping = {"PELV": "PELV", "RHIP": "RHIP", "LHIP": "LHIP", "RKNE": "RKNE", "LKNE": "LKNE"}
         self.marker_index = {}
-        self.output_index = {"PELVIS": 0, "HIP": 1, "KNEE": 2}
-        # load(input_path)
-        # after loading, figure out default marker mapping
+        self.output_index = {"Pelvis": 0, "Hip": 1, "Knee": 2}
 
     def run(self, trial):
         data, markers = trials[trial]  # Substitute for loading in data from c3d
@@ -21,7 +18,9 @@ class CGM:
         for i, marker in enumerate(markers):
             self.marker_index[marker] = i
 
-        result = calc(data, (self.pelvis_calc, self.hip_calc, self.knee_calc), self.mapping, self.marker_index)
+        result = calc(data,
+                      (self.pelvis_calc, self.hip_calc, self.knee_calc),
+                      (self.mapping, self.marker_index, self.output_index))
         self.all_angles = result
 
     def map(self, old=None, new=None, dic=None):
@@ -36,15 +35,15 @@ class CGM:
 
     @property
     def pelvis_angles(self):
-        return self.all_angles[0:, self.output_index["PELVIS"]]
+        return self.all_angles[0:, self.output_index["Pelvis"]]
 
     @property
     def hip_angles(self):
-        return self.all_angles[0:, self.output_index["HIP"]]
+        return self.all_angles[0:, self.output_index["Hip"]]
 
     @property
     def knee_angles(self):
-        return self.all_angles[0:, self.output_index["KNEE"]]
+        return self.all_angles[0:, self.output_index["Knee"]]
 
     @staticmethod
     def pelvis_calc(frame, mapping, mi):
@@ -59,11 +58,15 @@ class CGM:
         return frame[mi[mapping["RKNE"]]] - frame[mi[mapping["LKNE"]]]
 
 
-def calc(data, methods, mapping, mi):
+def calc(data, methods, mappings):
     pel, hip, kne = methods
+    mmap, mi, oi = mappings
+
     result = np.zeros((len(data), len(mi), 3), dtype=int)
+
+    # TODO: Current issue - no way for user to modify what is written to output
     for i, frame in enumerate(data):
-        result[i][0] = pel(frame, mapping, mi)
-        result[i][1] = hip(frame, mapping, mi)
-        result[i][2] = kne(frame, mapping, mi)
+        result[i][oi["Pelvis"]] = pel(frame, mmap, mi)
+        result[i][oi["Hip"]] = hip(frame, mmap, mi)
+        result[i][oi["Knee"]] = kne(frame, mmap, mi)
     return result
