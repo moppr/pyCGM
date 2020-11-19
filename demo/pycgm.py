@@ -54,8 +54,8 @@ class CGM:
         return np.mean(np.array([frame[mi[mapping["RHIP"]]], frame[mi[mapping["LHIP"]]]]), axis=0)
 
     @staticmethod
-    def knee_calc(frame, mapping, mi):
-        return frame[mi[mapping["RKNE"]]] - frame[mi[mapping["LKNE"]]]
+    def knee_calc(frame, mapping, mi, i, oi, result):
+        result[i][oi["Knee"]] = frame[mi[mapping["RKNE"]]] - frame[mi[mapping["LKNE"]]]
 
 
 def calc(data, methods, mappings):
@@ -68,5 +68,5 @@ def calc(data, methods, mappings):
     for i, frame in enumerate(data):
         result[i][oi["Pelvis"]] = pel(frame, mmap, mi)
         result[i][oi["Hip"]] = hip(frame, mmap, mi)
-        result[i][oi["Knee"]] = kne(frame, mmap, mi)
+        kne(frame, mmap, mi, i, oi, result)
     return result

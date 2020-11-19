@@ -10,7 +10,7 @@ print("Pelvis angles at each frame\n", subject0.pelvis_angles)
 class CGM1(CGM):
     @staticmethod
     def pelvis_calc(frame, mapping, mi):
-        return frame[mi[mapping["PELV"]]] + frame[mi[mapping["RANK"]]]
+        return CGM.pelvis_calc(frame, mapping, mi) + frame[mi[mapping["RANK"]]]
 
 
 # Demonstrates adding a new marker and using a custom calculation with that marker
