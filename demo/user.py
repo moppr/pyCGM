@@ -9,8 +9,8 @@ print("Pelvis angles at each frame\n", subject0.pelvis_angles)
 # Subclass that changes functionality of pelvis_calc to use an additional marker
 class CGM1(CGM):
     @staticmethod
-    def pelvis_calc(frame, mapping, mi):
-        return CGM.pelvis_calc(frame, mapping, mi) + frame[mi[mapping["RANK"]]]
+    def pelvis_calc(frame, mapping, mi, i, oi, result):
+        result[i][oi["Pelvis"]] = frame[mi[mapping["PELV"]]] + frame[mi[mapping["RANK"]]]
 
 
 # Demonstrates adding a new marker and using a custom calculation with that marker
@@ -31,8 +31,8 @@ print("Pelvis angles at each frame\n", subject2.pelvis_angles)
 # Subclass that changes calculation behavior and uses custom marker name in that calculation
 class CGM3(CGM):
     @staticmethod
-    def pelvis_calc(frame, mapping, mi):
-        return frame[mi[mapping["PELVIS"]]] + frame[mi[mapping["RANK"]]]
+    def pelvis_calc(frame, mapping, mi, i, oi, result):
+        result[i][oi["Pelvis"]] = frame[mi[mapping["PELVIS"]]] + frame[mi[mapping["RANK"]]]
 
 
 # Demonstrates renaming some markers one at a time and adding a new marker w/ custom calculation

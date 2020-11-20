@@ -55,12 +55,12 @@ class CGM:
         return self.all_angles[0:, self.output_index["Knee"]]
 
     @staticmethod
-    def pelvis_calc(frame, mapping, mi):
-        return frame[mi[mapping["PELV"]]]
+    def pelvis_calc(frame, mapping, mi, i, oi, result):
+        result[i][oi["Pelvis"]] = frame[mi[mapping["PELV"]]]
 
     @staticmethod
-    def hip_calc(frame, mapping, mi):
-        return np.mean(np.array([frame[mi[mapping["RHIP"]]], frame[mi[mapping["LHIP"]]]]), axis=0)
+    def hip_calc(frame, mapping, mi, i, oi, result):
+        result[i][oi["Hip"]] = np.mean(np.array([frame[mi[mapping["RHIP"]]], frame[mi[mapping["LHIP"]]]]), axis=0)
 
     @staticmethod
     def knee_calc(frame, mapping, mi, i, oi, result):
@@ -81,12 +81,12 @@ class StaticCGM:
         return self._measurements
 
     @staticmethod
-    def pelvis_calc_static(frame, mapping, mi):
-        return frame[mi[mapping["PELV"]]]
+    def pelvis_calc_static(frame, mapping, mi, i, oi, result):
+        result[i][oi["Pelvis"]] = frame[mi[mapping["PELV"]]]
 
     @staticmethod
-    def hip_calc_static(frame, mapping, mi):
-        return np.mean(np.array([frame[mi[mapping["RHIP"]]], frame[mi[mapping["LHIP"]]]]), axis=0)
+    def hip_calc_static(frame, mapping, mi, i, oi, result):
+        result[i][oi["Hip"]] = np.mean(np.array([frame[mi[mapping["RHIP"]]], frame[mi[mapping["LHIP"]]]]), axis=0)
 
     @staticmethod
     def knee_calc_static(frame, mapping, mi, i, oi, result):
@@ -102,7 +102,7 @@ def calc(data, methods, mappings):
 
     # TODO: Current issue - no way for user to modify what is written to output
     for i, frame in enumerate(data):
-        result[i][oi["Pelvis"]] = pel(frame, mmap, mi)
-        result[i][oi["Hip"]] = hip(frame, mmap, mi)
+        pel(frame, mmap, mi, i, oi, result)
+        hip(frame, mmap, mi, i, oi, result)
         kne(frame, mmap, mi, i, oi, result)
     return result
