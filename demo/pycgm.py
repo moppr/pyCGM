@@ -4,7 +4,10 @@ from demo.IO import trials
 
 class CGM:
 
-    def __init__(self):
+    def __init__(self, static_path, dynamic_path, vsk_path):
+        self.static_path = static_path
+        self.dynamic_path = dynamic_path
+        self.vsk_path = vsk_path
         self.all_angles = None
         self.all_axes = None
         self.mapping = {"PELV": "PELV", "RHIP": "RHIP", "LHIP": "LHIP", "RKNE": "RKNE", "LKNE": "LKNE"}
@@ -17,6 +20,9 @@ class CGM:
         # Associate each marker name with its index
         for i, marker in enumerate(markers):
             self.marker_index[marker] = i
+
+        # Static trial goes here
+        static = StaticCGM(self.static_path, self.vsk_path)
 
         result = calc(data,
                       (self.pelvis_calc, self.hip_calc, self.knee_calc),
@@ -57,6 +63,28 @@ class CGM:
 
     @staticmethod
     def knee_calc(frame, mapping, mi, i, oi, result):
+        result[i][oi["Knee"]] = frame[mi[mapping["RKNE"]]] - frame[mi[mapping["LKNE"]]]
+
+
+class StaticCGM:
+
+    def __init__(self):
+        pass
+
+    @property
+    def measurements(self):
+        pass
+
+    @staticmethod
+    def pelvis_calc_static(frame, mapping, mi):
+        return frame[mi[mapping["PELV"]]]
+
+    @staticmethod
+    def hip_calc_static(frame, mapping, mi):
+        return np.mean(np.array([frame[mi[mapping["RHIP"]]], frame[mi[mapping["LHIP"]]]]), axis=0)
+
+    @staticmethod
+    def knee_calc_static(frame, mapping, mi, i, oi, result):
         result[i][oi["Knee"]] = frame[mi[mapping["RKNE"]]] - frame[mi[mapping["LKNE"]]]
 
 
