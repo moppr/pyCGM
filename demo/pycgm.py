@@ -4,18 +4,19 @@ from demo.IO import trials
 
 class CGM:
 
-    def __init__(self, static_path, dynamic_path, vsk_path):
+    def __init__(self, static_path=None, dynamic_path=None, vsk_path=None, trial=0):
         self.static_path = static_path
         self.dynamic_path = dynamic_path
         self.vsk_path = vsk_path
+        self.trial = trial
         self.all_angles = None
         self.all_axes = None
         self.mapping = {"PELV": "PELV", "RHIP": "RHIP", "LHIP": "LHIP", "RKNE": "RKNE", "LKNE": "LKNE"}
         self.marker_index = {}
         self.output_index = {"Pelvis": 0, "Hip": 1, "Knee": 2}
 
-    def run(self, trial):
-        data, markers = trials[trial]  # Substitute for loading in data from c3d
+    def run(self):
+        data, markers = trials[self.trial]  # Substitute for loading in data from c3d
 
         # Associate each marker name with its index
         for i, marker in enumerate(markers):
@@ -68,12 +69,16 @@ class CGM:
 
 class StaticCGM:
 
-    def __init__(self):
-        pass
+    def __init__(self, static_path, vsk_path):
+        self.static_path = static_path
+        self.vsk_path = vsk_path
+        # In reality, measurements would be determined with appropriate functions
+        self._measurements = {"MeanLegLength": 940.0, "RightKneeWidth": 105.0, "LeftKneeWidth": 105.0}
 
     @property
     def measurements(self):
-        pass
+        # Equivalent of getStatic
+        return self._measurements
 
     @staticmethod
     def pelvis_calc_static(frame, mapping, mi):
