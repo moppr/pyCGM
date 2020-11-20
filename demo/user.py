@@ -3,7 +3,7 @@ from demo.pycgm import *
 # Demonstrates basic case with no customization
 subject0 = CGM(trial=0)
 subject0.run()
-print("Pelvis angles at each frame\n", subject0.pelvis_angles)
+print("Trial 0 pelvis angles at each frame with no modification\n", subject0.pelvis_angles, "\n")
 
 
 # Subclass that changes functionality of pelvis_calc to use an additional marker
@@ -17,7 +17,7 @@ class CGM1(CGM):
 subject1 = CGM1(trial=1)
 subject1.map("RANK")
 subject1.run()
-print("Pelvis angles at each frame\n", subject1.pelvis_angles)
+print("Trial 1 pelvis angles at each frame with 1 new marker and custom method\n", subject1.pelvis_angles, "\n")
 
 
 # Demonstrates renaming all markers at once by providing a dictionary
@@ -25,7 +25,7 @@ subject2 = CGM(trial=2)
 markers2 = {"PELV": "PELVIS", "RHIP": "RIGHTHIP", "LHIP": "LEFTHIP", "RKNE": "RIGHTKNEE", "LKNE": "LEFTKNEE"}
 subject2.map(dic=markers2)
 subject2.run()
-print("Pelvis angles at each frame\n", subject2.pelvis_angles)
+print("Trial 2 pelvis angles at each frame after renaming all markers\n", subject2.pelvis_angles, "\n")
 
 
 # Subclass that changes calculation behavior and uses custom marker name in that calculation
@@ -46,7 +46,8 @@ subject3.map("RKNE", "RKNEE")
 subject3.map("LKNE", "LKNEE")
 subject3.map("RANK", "RANK")
 subject3.run()
-print("Pelvis angles at each frame\n", subject3.pelvis_angles)
+print("Trial 3 pelvis angles at each frame after renaming some markers, adding new one, and using \
+custom calculation method\n", subject3.pelvis_angles, "\n")
 
 
 # Subclass that creates two knee angle results based on same inputs, also modifies property to access
@@ -69,4 +70,4 @@ subject4 = CGM4(trial=4)
 subject4.output_index["Knee1"] = 2
 subject4.output_index["Knee2"] = 3
 subject4.run()
-print("Knee angles at each frame\n", subject4.knee_angles)
+print("Trial 4 knee angles at each frame after creating two angle outputs per knee\n", subject4.knee_angles, "\n")
