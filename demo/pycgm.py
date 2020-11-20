@@ -11,6 +11,7 @@ class CGM:
         self.trial = trial
         self.all_angles = None
         self.all_axes = None
+        self.offsets = None
         self.mapping = {"PELV": "PELV", "RHIP": "RHIP", "LHIP": "LHIP", "RKNE": "RKNE", "LKNE": "LKNE"}
         self.marker_index = {}
         self.output_index = {"Pelvis": 0, "Hip": 1, "Knee": 2}
@@ -24,6 +25,7 @@ class CGM:
 
         # Static trial goes here
         static = StaticCGM(self.static_path, self.vsk_path)
+        self.offsets = static.offsets
 
         result = calc(data,
                       (self.pelvis_calc, self.hip_calc, self.knee_calc),
@@ -74,11 +76,17 @@ class StaticCGM:
         self.vsk_path = vsk_path
         # In reality, measurements would be determined with appropriate functions
         self._measurements = {"MeanLegLength": 940.0, "RightKneeWidth": 105.0, "LeftKneeWidth": 105.0}
+        # This is the extra thing that comes when using 6dof(?)
+        self._offsets = {}
 
     @property
     def measurements(self):
         # Equivalent of getStatic
         return self._measurements
+
+    @property
+    def offsets(self):
+        return self._offsets
 
     @staticmethod
     def pelvis_calc_static(frame, mapping, mi, i, oi, result):
@@ -100,7 +108,6 @@ def calc(data, methods, mappings):
     # mechanism responsible for changing size of output array
     result = np.zeros((len(data), len(oi), 3), dtype=int)
 
-    # TODO: Current issue - no way for user to modify what is written to output
     for i, frame in enumerate(data):
         pel(frame, mmap, mi, i, oi, result)
         hip(frame, mmap, mi, i, oi, result)

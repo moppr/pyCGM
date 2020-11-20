@@ -36,6 +36,10 @@ class CGM3(CGM):
 
 
 # Demonstrates renaming some markers one at a time and adding a new marker w/ custom calculation
+# Note that the custom calculation could reference either the old or new name, though it makes
+# more sense to use the new one
+# The only exception to that is if the new name replaces an existing one, but that probably
+# isn't a situation we're going to encounter
 subject3 = CGM3(trial=3)
 subject3.map("PELV", "PELVIS")
 subject3.map("RKNE", "RKNEE")
