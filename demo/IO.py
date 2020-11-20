@@ -27,4 +27,4 @@ example3 = example1
 ex3markers = "PELVIS RHIP LHIP RKNEE LKNEE RANK".split()
 
 trials = [(example0, ex0markers), (example1, ex1markers), (example2, ex2markers), (example3, ex3markers),
-          (example0, ex0markers)]
+          (example0, ex0markers), (example0, ex0markers)]

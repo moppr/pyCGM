@@ -9,7 +9,7 @@ print("Trial 0 pelvis angles at each frame with no modification\n", subject0.pel
 # Subclass that changes functionality of pelvis_calc to use an additional marker
 class CGM1(CGM):
     @staticmethod
-    def pelvis_calc(frame, mapping, mi, i, oi, result):
+    def pelvis_calc(frame, mapping, mi, i, oi, result, offsets):
         result[i][oi["Pelvis"]] = frame[mi[mapping["PELV"]]] + frame[mi[mapping["RANK"]]]
 
 
@@ -31,7 +31,7 @@ print("Trial 2 pelvis angles at each frame after renaming all markers\n", subjec
 # Subclass that changes calculation behavior and uses custom marker name in that calculation
 class CGM3(CGM):
     @staticmethod
-    def pelvis_calc(frame, mapping, mi, i, oi, result):
+    def pelvis_calc(frame, mapping, mi, i, oi, result, offsets):
         result[i][oi["Pelvis"]] = frame[mi[mapping["PELVIS"]]] + frame[mi[mapping["RANK"]]]
 
 
@@ -58,7 +58,7 @@ class CGM4(CGM):
         return self.all_angles[0:, self.output_index["Knee1"]], self.all_angles[0:, self.output_index["Knee2"]]
 
     @staticmethod
-    def knee_calc(frame, mapping, mi, i, oi, result):
+    def knee_calc(frame, mapping, mi, i, oi, result, offsets):
         result[i][oi["Knee1"]] = frame[mi[mapping["RKNE"]]] - frame[mi[mapping["LKNE"]]]
         result[i][oi["Knee2"]] = frame[mi[mapping["RKNE"]]] + frame[mi[mapping["LKNE"]]]
 
@@ -71,3 +71,22 @@ subject4.output_index["Knee1"] = 2
 subject4.output_index["Knee2"] = 3
 subject4.run()
 print("Trial 4 knee angles at each frame after creating two angle outputs per knee\n", subject4.knee_angles, "\n")
+
+
+# Subclass that defines a knee calc method using offsets of subclassed static
+class CGM5(CGM):
+    @staticmethod
+    def knee_calc(frame, mapping, mi, i, oi, result, offsets):
+        result[i][oi["Knee"]] = frame[mi[mapping["RKNE"]]] - offsets[mapping["LKNE"]]
+
+
+class StaticCGM5(StaticCGM):
+    def __init__(self, static_path, vsk_path):
+        super().__init__(static_path, vsk_path)
+        self._offsets = {"LKNE": np.ones(3, dtype=int)}
+
+
+subject5 = CGM5(trial=5)
+subject5static = StaticCGM5(None, None)
+subject5.run(static=subject5static)
+print("Trial 5 knee angles at each frame after incorporating subclassed offset\n", subject5.knee_angles, "\n")

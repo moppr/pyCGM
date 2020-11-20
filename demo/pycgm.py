@@ -16,20 +16,20 @@ class CGM:
         self.marker_index = {}
         self.output_index = {"Pelvis": 0, "Hip": 1, "Knee": 2}
 
-    def run(self):
+    def run(self, static=None):
         data, markers = trials[self.trial]  # Substitute for loading in data from c3d
 
         # Associate each marker name with its index
         for i, marker in enumerate(markers):
             self.marker_index[marker] = i
 
-        # Static trial goes here
-        static = StaticCGM(self.static_path, self.vsk_path)
+        if not static:
+            static = StaticCGM(self.static_path, self.vsk_path)
         self.offsets = static.offsets
 
         result = calc(data,
                       (self.pelvis_calc, self.hip_calc, self.knee_calc),
-                      (self.mapping, self.marker_index, self.output_index))
+                      (self.mapping, self.marker_index, self.output_index, self.offsets))
         self.all_angles = result
 
     def map(self, old=None, new=None, dic=None):
@@ -57,15 +57,15 @@ class CGM:
         return self.all_angles[0:, self.output_index["Knee"]]
 
     @staticmethod
-    def pelvis_calc(frame, mapping, mi, i, oi, result):
+    def pelvis_calc(frame, mapping, mi, i, oi, result, offsets):
         result[i][oi["Pelvis"]] = frame[mi[mapping["PELV"]]]
 
     @staticmethod
-    def hip_calc(frame, mapping, mi, i, oi, result):
+    def hip_calc(frame, mapping, mi, i, oi, result, offsets):
         result[i][oi["Hip"]] = np.mean(np.array([frame[mi[mapping["RHIP"]]], frame[mi[mapping["LHIP"]]]]), axis=0)
 
     @staticmethod
-    def knee_calc(frame, mapping, mi, i, oi, result):
+    def knee_calc(frame, mapping, mi, i, oi, result, offsets):
         result[i][oi["Knee"]] = frame[mi[mapping["RKNE"]]] - frame[mi[mapping["LKNE"]]]
 
 
@@ -103,13 +103,13 @@ class StaticCGM:
 
 def calc(data, methods, mappings):
     pel, hip, kne = methods
-    mmap, mi, oi = mappings
+    mmap, mi, oi, offsets = mappings
 
     # mechanism responsible for changing size of output array
     result = np.zeros((len(data), len(oi), 3), dtype=int)
 
     for i, frame in enumerate(data):
-        pel(frame, mmap, mi, i, oi, result)
-        hip(frame, mmap, mi, i, oi, result)
-        kne(frame, mmap, mi, i, oi, result)
+        pel(frame, mmap, mi, i, oi, result, offsets)
+        hip(frame, mmap, mi, i, oi, result, offsets)
+        kne(frame, mmap, mi, i, oi, result, offsets)
     return result
