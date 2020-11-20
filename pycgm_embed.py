@@ -37,7 +37,9 @@ def main():
     motionData,vskData,staticData = loadData(dynamic_trial,static_trial,vsk_file)
     
     #Calibrate the static offsets and subject measurements
+    print(vskData)
     calSM = pycgmStatic.getStatic(staticData,vskData,flat_foot=False)
+    print(calSM)
 
     # #Load data as a dictionary instead of a frame-by-frame array of dictionary
     # staticDataDict = pycgmIO.dataAsDict(staticData,npArray=True)
