@@ -24,7 +24,8 @@ class TestClassMethods:
         ["cgm_parameters", "old", "new", "dic"], [
             ([None, None, None, 0], "RANK", None, None),
             ([None, None, None, 1], "LANK", "RLANK", None),
-            ([None, None, None, 1], "PELV", "PELVIS", None)
+            ([None, None, None, 1], "PELV", "PELVIS", None),
+            ([None, None, None, 0], None, None, {"PELV": "PELVIS", "RHIP": "RIGHTHIP"})
         ]
     )
     def test_map(self, cgm_parameters, old, new, dic):
@@ -35,6 +36,9 @@ class TestClassMethods:
             result = subject.mapping[old] == subject.mapping[new]
         elif old:
             result = subject.mapping[old] == old
-        else:
-            result = subject.mapping[new] == new
+        elif dic:
+            result = True
+            for key in dic:
+                if subject.mapping[key] != dic[key]:
+                    result = False
         assert result
