@@ -43,3 +43,26 @@ subject3.map("LKNE", "LKNEE")
 subject3.map("RANK", "RANK")
 subject3.run(3)
 print("Pelvis angles at each frame\n", subject3.pelvis_angles)
+
+
+# Subclass that creates two knee angle results based on same inputs, also modifies property to access
+# aforementioned two angles
+class CGM4(CGM):
+    @property
+    def knee_angles(self):
+        return self.all_angles[0:, self.output_index["Knee1"]], self.all_angles[0:, self.output_index["Knee2"]]
+
+    @staticmethod
+    def knee_calc(frame, mapping, mi, i, oi, result):
+        result[i][oi["Knee1"]] = frame[mi[mapping["RKNE"]]] - frame[mi[mapping["LKNE"]]]
+        result[i][oi["Knee2"]] = frame[mi[mapping["RKNE"]]] + frame[mi[mapping["LKNE"]]]
+
+
+# Demonstrates creating two angles (expanding output dimension) on one joint
+subject4 = CGM4()
+# Note: output index would have to update all others (increment) if new value added in middle
+# Also would make more sense with its own .map
+subject4.output_index["Knee1"] = 2
+subject4.output_index["Knee2"] = 3
+subject4.run(4)
+print("Knee angles at each frame\n", subject4.knee_angles)

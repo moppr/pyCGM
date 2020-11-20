@@ -27,6 +27,8 @@ class CGM:
         if dic and type(dic) == dict:  # Entire dictionary given
             self.mapping.update(dic)
             return
+        # TODO: Potential issue if 'new' is an existing marker that CGM expects, unless all
+        # instances that use it are overridden
         if old and new:  # Old and new marker name provided
             self.mapping[old] = new
             self.mapping[new] = new
@@ -62,7 +64,8 @@ def calc(data, methods, mappings):
     pel, hip, kne = methods
     mmap, mi, oi = mappings
 
-    result = np.zeros((len(data), len(mi), 3), dtype=int)
+    # mechanism responsible for changing size of output array
+    result = np.zeros((len(data), len(oi), 3), dtype=int)
 
     # TODO: Current issue - no way for user to modify what is written to output
     for i, frame in enumerate(data):
