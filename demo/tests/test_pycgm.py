@@ -6,7 +6,7 @@ import numpy as np
 class TestClassMethods:
     # The parametrize method can hold varying CGM optional arguments
     @pytest.mark.parametrize(
-        ["CGM_parameters", "expected_all_angles", "expected_offsets"], [
+        ["cgm_parameters", "expected_all_angles", "expected_offsets"], [
             ([None, None, None, 0], ([[0, 1, 2], [9, 9, 9], [0, 0, 0]]), {}),
             ([None, None, None, 1], ([[0, 1, 2], [9, 9, 9], [0, 0, 0]]), {}),
         ]
@@ -21,8 +21,8 @@ class TestClassMethods:
         np.testing.assert_equal(subject.offsets, expected_offsets)
 
     @pytest.mark.parametrize(
-        ["CGM_parameters", "old", "new", "dic"], [
-            ([None, None, None, 0], None, "RANK", None),
+        ["cgm_parameters", "old", "new", "dic"], [
+            ([None, None, None, 0], "RANK", None, None),
             ([None, None, None, 1], "LANK", "RLANK", None),
             ([None, None, None, 1], "PELV", "PELVIS", None)
         ]
