@@ -8,9 +8,30 @@ print("Trial 0 pelvis angles at each frame with no modification\n", subject0.pel
 
 # Subclass that changes functionality of pelvis_calc to use an additional marker
 class CGM1(CGM):
+
     @staticmethod
-    def pelvis_calc(frame, mapping, mi, i, oi, result, offsets):
-        result[i][oi["Pelvis"]] = frame[mi[mapping["PELV"]]] + frame[mi[mapping["RANK"]]]
+    def pelvis_calc(pelv, rank):
+        return pelv + rank
+
+    @staticmethod
+    def calc(data, methods, mappings):
+        pel, hip, kne = methods
+        mmap, mi, oi = mappings
+
+        # mechanism responsible for changing size of output array
+        result = np.zeros((len(data), len(oi), 3), dtype=int)
+
+        for i, frame in enumerate(data):
+            pelv = frame[mi[mmap["PELV"]]]
+            rank = frame[mi[mmap["RANK"]]]
+            result[i][oi["Pelvis"]] = pel(pelv, rank)
+            rhip = frame[mi[mmap["RHIP"]]]
+            lhip = frame[mi[mmap["LHIP"]]]
+            result[i][oi["Hip"]] = hip(rhip, lhip)
+            rkne = frame[mi[mmap["RKNE"]]]
+            lkne = frame[mi[mmap["LKNE"]]]
+            result[i][oi["Knee"]] = kne(rkne, lkne)
+        return result
 
 
 # Demonstrates adding a new marker and using a custom calculation with that marker
@@ -30,9 +51,30 @@ print("Trial 2 pelvis angles at each frame after renaming all markers\n", subjec
 
 # Subclass that changes calculation behavior and uses custom marker name in that calculation
 class CGM3(CGM):
+
     @staticmethod
-    def pelvis_calc(frame, mapping, mi, i, oi, result, offsets):
-        result[i][oi["Pelvis"]] = frame[mi[mapping["PELVIS"]]] + frame[mi[mapping["RANK"]]]
+    def pelvis_calc(pelv, rank):
+        return pelv + rank
+
+    @staticmethod
+    def calc(data, methods, mappings):
+        pel, hip, kne = methods
+        mmap, mi, oi = mappings
+
+        # mechanism responsible for changing size of output array
+        result = np.zeros((len(data), len(oi), 3), dtype=int)
+
+        for i, frame in enumerate(data):
+            pelv = frame[mi[mmap["PELV"]]]
+            rank = frame[mi[mmap["RANK"]]]
+            result[i][oi["Pelvis"]] = pel(pelv, rank)
+            rhip = frame[mi[mmap["RHIP"]]]
+            lhip = frame[mi[mmap["LHIP"]]]
+            result[i][oi["Hip"]] = hip(rhip, lhip)
+            rkne = frame[mi[mmap["RKNE"]]]
+            lkne = frame[mi[mmap["LKNE"]]]
+            result[i][oi["Knee"]] = kne(rkne, lkne)
+        return result
 
 
 # Demonstrates renaming some markers one at a time and adding a new marker w/ custom calculation
@@ -53,14 +95,33 @@ custom calculation method\n", subject3.pelvis_angles, "\n")
 # Subclass that creates two knee angle results based on same inputs, also modifies property to access
 # aforementioned two angles
 class CGM4(CGM):
+
     @property
     def knee_angles(self):
         return self.all_angles[0:, self.output_index["Knee1"]], self.all_angles[0:, self.output_index["Knee2"]]
 
     @staticmethod
-    def knee_calc(frame, mapping, mi, i, oi, result, offsets):
-        result[i][oi["Knee1"]] = frame[mi[mapping["RKNE"]]] - frame[mi[mapping["LKNE"]]]
-        result[i][oi["Knee2"]] = frame[mi[mapping["RKNE"]]] + frame[mi[mapping["LKNE"]]]
+    def knee_calc(rkne, lkne):
+        return rkne - lkne, rkne + lkne
+
+    @staticmethod
+    def calc(data, methods, mappings):
+        pel, hip, kne = methods
+        mmap, mi, oi = mappings
+
+        # mechanism responsible for changing size of output array
+        result = np.zeros((len(data), len(oi), 3), dtype=int)
+
+        for i, frame in enumerate(data):
+            pelv = frame[mi[mmap["PELV"]]]
+            result[i][oi["Pelvis"]] = pel(pelv)
+            rhip = frame[mi[mmap["RHIP"]]]
+            lhip = frame[mi[mmap["LHIP"]]]
+            result[i][oi["Hip"]] = hip(rhip, lhip)
+            rkne = frame[mi[mmap["RKNE"]]]
+            lkne = frame[mi[mmap["LKNE"]]]
+            result[i][oi["Knee1"]], result[i][oi["Knee2"]] = kne(rkne, lkne)
+        return result
 
 
 # Demonstrates creating two angles (expanding output dimension) on one joint
@@ -75,15 +136,52 @@ print("Trial 4 knee angles at each frame after creating two angle outputs per kn
 
 # Subclass that defines a knee calc method using offsets of subclassed static
 class CGM5(CGM):
+
+    def run(self, static):
+        data, markers = trials[self.trial]  # Substitute for loading in data from c3d
+
+        # Associate each marker name with its index
+        for i, marker in enumerate(markers):
+            self.marker_index[marker] = i
+
+        result = self.calc(data,
+                           (self.pelvis_calc, self.hip_calc, self.knee_calc),
+                           (self.mapping, self.marker_index, self.output_index, static.offsets))
+        self.all_angles = result
+
     @staticmethod
-    def knee_calc(frame, mapping, mi, i, oi, result, offsets):
-        result[i][oi["Knee"]] = frame[mi[mapping["RKNE"]]] - offsets[mapping["LKNE"]]
+    def knee_calc(rkne, lkne, lkne_offset):
+        return rkne - lkne + lkne_offset
+
+    @staticmethod
+    def calc(data, methods, mappings):
+        pel, hip, kne = methods
+        mmap, mi, oi, offsets = mappings
+
+        # mechanism responsible for changing size of output array
+        result = np.zeros((len(data), len(oi), 3), dtype=int)
+
+        for i, frame in enumerate(data):
+            pelv = frame[mi[mmap["PELV"]]]
+            result[i][oi["Pelvis"]] = pel(pelv)
+            rhip = frame[mi[mmap["RHIP"]]]
+            lhip = frame[mi[mmap["LHIP"]]]
+            result[i][oi["Hip"]] = hip(rhip, lhip)
+            rkne = frame[mi[mmap["RKNE"]]]
+            lkne = frame[mi[mmap["LKNE"]]]
+            lkne_offset = offsets[mmap["LKNE"]]
+            result[i][oi["Knee"]] = kne(rkne, lkne, lkne_offset)
+        return result
 
 
 class StaticCGM5(StaticCGM):
     def __init__(self, static_path, vsk_path):
         super().__init__(static_path, vsk_path)
         self._offsets = {"LKNE": np.ones(3, dtype=int)}
+
+    @property
+    def offsets(self):
+        return self._offsets
 
 
 subject5 = CGM5(trial=5)

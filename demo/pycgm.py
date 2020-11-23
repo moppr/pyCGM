@@ -25,11 +25,10 @@ class CGM:
 
         if not static:
             static = StaticCGM(self.static_path, self.vsk_path)
-        self.offsets = static.offsets
 
-        result = calc(data,
-                      (self.pelvis_calc, self.hip_calc, self.knee_calc),
-                      (self.mapping, self.marker_index, self.output_index, self.offsets))
+        result = self.calc(data,
+                           (self.pelvis_calc, self.hip_calc, self.knee_calc),
+                           (self.mapping, self.marker_index, self.output_index))
         self.all_angles = result
 
     def map(self, old=None, new=None, dic=None):
@@ -57,16 +56,35 @@ class CGM:
         return self.all_angles[0:, self.output_index["Knee"]]
 
     @staticmethod
-    def pelvis_calc(frame, mapping, mi, i, oi, result, offsets):
-        result[i][oi["Pelvis"]] = frame[mi[mapping["PELV"]]]
+    def pelvis_calc(pelv):
+        return pelv
 
     @staticmethod
-    def hip_calc(frame, mapping, mi, i, oi, result, offsets):
-        result[i][oi["Hip"]] = np.mean(np.array([frame[mi[mapping["RHIP"]]], frame[mi[mapping["LHIP"]]]]), axis=0)
+    def hip_calc(rhip, lhip):
+        return np.mean(np.array([rhip, lhip]), axis=0)
 
     @staticmethod
-    def knee_calc(frame, mapping, mi, i, oi, result, offsets):
-        result[i][oi["Knee"]] = frame[mi[mapping["RKNE"]]] - frame[mi[mapping["LKNE"]]]
+    def knee_calc(rkne, lkne):
+        return rkne - lkne
+
+    @staticmethod
+    def calc(data, methods, mappings):
+        pel, hip, kne = methods
+        mmap, mi, oi = mappings
+
+        # mechanism responsible for changing size of output array
+        result = np.zeros((len(data), len(oi), 3), dtype=int)
+
+        for i, frame in enumerate(data):
+            pelv = frame[mi[mmap["PELV"]]]
+            result[i][oi["Pelvis"]] = pel(pelv)
+            rhip = frame[mi[mmap["RHIP"]]]
+            lhip = frame[mi[mmap["LHIP"]]]
+            result[i][oi["Hip"]] = hip(rhip, lhip)
+            rkne = frame[mi[mmap["RKNE"]]]
+            lkne = frame[mi[mmap["LKNE"]]]
+            result[i][oi["Knee"]] = kne(rkne, lkne)
+        return result
 
 
 class StaticCGM:
@@ -76,40 +94,20 @@ class StaticCGM:
         self.vsk_path = vsk_path
         # In reality, measurements would be determined with appropriate functions
         self._measurements = {"MeanLegLength": 940.0, "RightKneeWidth": 105.0, "LeftKneeWidth": 105.0}
-        # This is the extra thing that comes when using 6dof(?)
-        self._offsets = {}
 
     @property
     def measurements(self):
         # Equivalent of getStatic
         return self._measurements
 
-    @property
-    def offsets(self):
-        return self._offsets
+    @staticmethod
+    def pelvis_calc_static(pelv):
+        return pelv
 
     @staticmethod
-    def pelvis_calc_static(frame, mapping, mi, i, oi, result):
-        result[i][oi["Pelvis"]] = frame[mi[mapping["PELV"]]]
+    def hip_calc_static(rhip, lhip):
+        return np.mean(np.array([rhip, lhip]), axis=0)
 
     @staticmethod
-    def hip_calc_static(frame, mapping, mi, i, oi, result):
-        result[i][oi["Hip"]] = np.mean(np.array([frame[mi[mapping["RHIP"]]], frame[mi[mapping["LHIP"]]]]), axis=0)
-
-    @staticmethod
-    def knee_calc_static(frame, mapping, mi, i, oi, result):
-        result[i][oi["Knee"]] = frame[mi[mapping["RKNE"]]] - frame[mi[mapping["LKNE"]]]
-
-
-def calc(data, methods, mappings):
-    pel, hip, kne = methods
-    mmap, mi, oi, offsets = mappings
-
-    # mechanism responsible for changing size of output array
-    result = np.zeros((len(data), len(oi), 3), dtype=int)
-
-    for i, frame in enumerate(data):
-        pel(frame, mmap, mi, i, oi, result, offsets)
-        hip(frame, mmap, mi, i, oi, result, offsets)
-        kne(frame, mmap, mi, i, oi, result, offsets)
-    return result
+    def knee_calc_static(rkne, lkne):
+        return rkne - lkne
