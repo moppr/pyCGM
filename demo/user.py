@@ -10,13 +10,15 @@ print("Trial 0 pelvis angles at each frame with no modification\n", subject0.pel
 class CGM1(CGM):
 
     @staticmethod
-    def pelvis_calc(pelv, rank):
-        return pelv + rank
+    def pelvis_calc(pelv, rank, measurements):
+        pelv_angle = pelv + rank
+        pelv_axis = np.array([pelv, pelv, pelv, pelv])
+        return pelv_angle, pelv_axis
 
     @staticmethod
     def calc(data, methods, mappings):
         pel, hip, kne = methods
-        mmap, mi, oi = mappings
+        mmap, mi, oi, measurements = mappings
 
         # mechanism responsible for changing size of output array
         result = np.zeros((len(data), len(oi), 3), dtype=int)
@@ -24,13 +26,18 @@ class CGM1(CGM):
         for i, frame in enumerate(data):
             pelv = frame[mi[mmap["PELV"]]]
             rank = frame[mi[mmap["RANK"]]]
-            result[i][oi["Pelvis"]] = pel(pelv, rank)
+            pelv_angle, pelv_axis = pel(pelv, rank, measurements)
+            result[i][oi["Pelvis Angle"]] = pelv_angle
+
             rhip = frame[mi[mmap["RHIP"]]]
             lhip = frame[mi[mmap["LHIP"]]]
-            result[i][oi["Hip"]] = hip(rhip, lhip)
+            hip_angle, hip_axis = hip(pelv_axis, rhip, lhip, measurements)
+            result[i][oi["Hip Angle"]] = hip_angle
+
             rkne = frame[mi[mmap["RKNE"]]]
             lkne = frame[mi[mmap["LKNE"]]]
-            result[i][oi["Knee"]] = kne(rkne, lkne)
+            knee_angle, knee_axis = kne(hip_angle, rkne, lkne, measurements)
+            result[i][oi["Knee Angle"]] = knee_angle
         return result
 
 
@@ -53,13 +60,15 @@ print("Trial 2 pelvis angles at each frame after renaming all markers\n", subjec
 class CGM3(CGM):
 
     @staticmethod
-    def pelvis_calc(pelv, rank):
-        return pelv + rank
+    def pelvis_calc(pelv, rank, measurements):
+        pelv_angle = pelv + rank
+        pelv_axis = np.array([pelv, pelv, pelv, pelv])
+        return pelv_angle, pelv_axis
 
     @staticmethod
     def calc(data, methods, mappings):
         pel, hip, kne = methods
-        mmap, mi, oi = mappings
+        mmap, mi, oi, measurements = mappings
 
         # mechanism responsible for changing size of output array
         result = np.zeros((len(data), len(oi), 3), dtype=int)
@@ -67,13 +76,18 @@ class CGM3(CGM):
         for i, frame in enumerate(data):
             pelv = frame[mi[mmap["PELV"]]]
             rank = frame[mi[mmap["RANK"]]]
-            result[i][oi["Pelvis"]] = pel(pelv, rank)
+            pelv_angle, pelv_axis = pel(pelv, rank, measurements)
+            result[i][oi["Pelvis Angle"]] = pelv_angle
+
             rhip = frame[mi[mmap["RHIP"]]]
             lhip = frame[mi[mmap["LHIP"]]]
-            result[i][oi["Hip"]] = hip(rhip, lhip)
+            hip_angle, hip_axis = hip(pelv_axis, rhip, lhip, measurements)
+            result[i][oi["Hip Angle"]] = hip_angle
+
             rkne = frame[mi[mmap["RKNE"]]]
             lkne = frame[mi[mmap["LKNE"]]]
-            result[i][oi["Knee"]] = kne(rkne, lkne)
+            knee_angle, knee_axis = kne(hip_angle, rkne, lkne, measurements)
+            result[i][oi["Knee Angle"]] = knee_angle
         return result
 
 
@@ -98,29 +112,37 @@ class CGM4(CGM):
 
     @property
     def knee_angles(self):
-        return self.all_angles[0:, self.output_index["Knee1"]], self.all_angles[0:, self.output_index["Knee2"]]
+        return self.all_angles[0:, self.output_index["Knee Angle 1"]], self.all_angles[0:, self.output_index["Knee Angle 2"]]
 
     @staticmethod
-    def knee_calc(rkne, lkne):
-        return rkne - lkne, rkne + lkne
+    def knee_calc(hip_angle, rkne, lkne, measurements):
+        knee_angle = np.array([rkne - lkne + hip_angle, rkne + lkne + hip_angle])
+        knee_axis = np.array([rkne, rkne, lkne, lkne])
+        return knee_angle, knee_axis
 
     @staticmethod
     def calc(data, methods, mappings):
         pel, hip, kne = methods
-        mmap, mi, oi = mappings
+        mmap, mi, oi, measurements = mappings
 
         # mechanism responsible for changing size of output array
         result = np.zeros((len(data), len(oi), 3), dtype=int)
 
         for i, frame in enumerate(data):
             pelv = frame[mi[mmap["PELV"]]]
-            result[i][oi["Pelvis"]] = pel(pelv)
+            pelv_angle, pelv_axis = pel(pelv, measurements)
+            result[i][oi["Pelvis Angle"]] = pelv_angle
+
             rhip = frame[mi[mmap["RHIP"]]]
             lhip = frame[mi[mmap["LHIP"]]]
-            result[i][oi["Hip"]] = hip(rhip, lhip)
+            hip_angle, hip_axis = hip(pelv_axis, rhip, lhip, measurements)
+            result[i][oi["Hip Angle"]] = hip_angle
+
             rkne = frame[mi[mmap["RKNE"]]]
             lkne = frame[mi[mmap["LKNE"]]]
-            result[i][oi["Knee1"]], result[i][oi["Knee2"]] = kne(rkne, lkne)
+            knee_angle, knee_axis = kne(hip_angle, rkne, lkne, measurements)
+            result[i][oi["Knee Angle 1"]] = knee_angle[0]
+            result[i][oi["Knee Angle 2"]] = knee_angle[1]
         return result
 
 
@@ -128,8 +150,8 @@ class CGM4(CGM):
 subject4 = CGM4(trial=4)
 # Note: output index would have to update all others (increment) if new value added in middle
 # Also would make more sense with its own .map
-subject4.output_index["Knee1"] = 2
-subject4.output_index["Knee2"] = 3
+subject4.output_index["Knee Angle 1"] = 2
+subject4.output_index["Knee Angle 2"] = 3
 subject4.run()
 print("Trial 4 knee angles at each frame after creating two angle outputs per knee\n", subject4.knee_angles, "\n")
 
@@ -137,40 +159,52 @@ print("Trial 4 knee angles at each frame after creating two angle outputs per kn
 # Subclass that defines a knee calc method using offsets of subclassed static
 class CGM5(CGM):
 
-    def run(self, static):
+    def run(self):
         data, markers = trials[self.trial]  # Substitute for loading in data from c3d
 
         # Associate each marker name with its index
         for i, marker in enumerate(markers):
             self.marker_index[marker] = i
 
+        # This is where prep/pipelines things happen
+
+        # Get measurements from static trial
+        measurements = self.static.measurements
+
         result = self.calc(data,
                            (self.pelvis_calc, self.hip_calc, self.knee_calc),
-                           (self.mapping, self.marker_index, self.output_index, static.offsets))
+                           (self.mapping, self.marker_index, self.output_index, measurements, self.static.offsets))
         self.all_angles = result
 
     @staticmethod
-    def knee_calc(rkne, lkne, lkne_offset):
-        return rkne - lkne + lkne_offset
+    def knee_calc(hip_angle, rkne, lkne, lkne_offset, measurements):
+        knee_angle = rkne - lkne + hip_angle + lkne_offset
+        knee_axis = np.array([rkne, rkne, lkne, lkne])
+        return knee_angle, knee_axis
 
     @staticmethod
     def calc(data, methods, mappings):
         pel, hip, kne = methods
-        mmap, mi, oi, offsets = mappings
+        mmap, mi, oi, measurements, offsets = mappings
 
         # mechanism responsible for changing size of output array
         result = np.zeros((len(data), len(oi), 3), dtype=int)
 
         for i, frame in enumerate(data):
             pelv = frame[mi[mmap["PELV"]]]
-            result[i][oi["Pelvis"]] = pel(pelv)
+            pelv_angle, pelv_axis = pel(pelv, measurements)
+            result[i][oi["Pelvis Angle"]] = pelv_angle
+
             rhip = frame[mi[mmap["RHIP"]]]
             lhip = frame[mi[mmap["LHIP"]]]
-            result[i][oi["Hip"]] = hip(rhip, lhip)
+            hip_angle, hip_axis = hip(pelv_axis, rhip, lhip, measurements)
+            result[i][oi["Hip Angle"]] = hip_angle
+
             rkne = frame[mi[mmap["RKNE"]]]
             lkne = frame[mi[mmap["LKNE"]]]
             lkne_offset = offsets[mmap["LKNE"]]
-            result[i][oi["Knee"]] = kne(rkne, lkne, lkne_offset)
+            knee_angle, knee_axis = kne(hip_angle, rkne, lkne, lkne_offset, measurements)
+            result[i][oi["Knee Angle"]] = knee_angle
         return result
 
 
@@ -184,7 +218,7 @@ class StaticCGM5(StaticCGM):
         return self._offsets
 
 
-subject5 = CGM5(trial=5)
 subject5static = StaticCGM5(None, None)
-subject5.run(static=subject5static)
+subject5 = CGM5(trial=5, static=subject5static)
+subject5.run()
 print("Trial 5 knee angles at each frame after incorporating subclassed offset\n", subject5.knee_angles, "\n")
