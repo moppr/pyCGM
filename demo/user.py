@@ -3,7 +3,9 @@ from demo.pycgm import *
 # Demonstrates basic case with no customization
 subject0 = CGM(trial=0)
 subject0.run()
-print("Trial 0 pelvis angles at each frame with no modification\n", subject0.pelvis_angles, "\n")
+print("Trial 0 pelvis angles at each frame with no modification\n", subject0.pelvis_angles)
+print("Trial 0 all angles at frame 1\n", subject0.all_angles[0])
+print("Trial 0 hip axes at each frame\n", subject0.hip_axes, "\n")
 
 
 # Subclass that changes functionality of pelvis_calc to use an additional marker
