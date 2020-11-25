@@ -17,7 +17,8 @@ class CGM:
         self.offsets = None
         self.mapping = {"PELV": "PELV", "RHIP": "RHIP", "LHIP": "LHIP", "RKNE": "RKNE", "LKNE": "LKNE"}
         self.marker_index = {}
-        self.output_index = {"Pelvis Angle": 0, "Hip Angle": 1, "Knee Angle": 2}
+        self.output_an_index = {"Pelvis Angle": 0, "Hip Angle": 1, "Knee Angle": 2}
+        self.output_ax_index = {"Pelvis Axis": 0, "Hip Axis": 1, "Knee Axis": 2}
 
     def run(self):
         # Loading in data from IO
@@ -34,8 +35,8 @@ class CGM:
 
         result = self.calc(data,
                            (self.pelvis_calc, self.hip_calc, self.knee_calc),
-                           (self.mapping, self.marker_index, self.output_index, measurements))
-        self.all_angles = result
+                           (self.mapping, self.marker_index, self.output_an_index, self.output_ax_index, measurements))
+        self.all_angles, self.all_axes = result
 
     def map(self, old=None, new=None, dic=None):
         if dic and type(dic) == dict:  # Entire dictionary given
@@ -51,15 +52,27 @@ class CGM:
 
     @property
     def pelvis_angles(self):
-        return self.all_angles[0:, self.output_index["Pelvis Angle"]]
+        return self.all_angles[0:, self.output_an_index["Pelvis Angle"]]
 
     @property
     def hip_angles(self):
-        return self.all_angles[0:, self.output_index["Hip Angle"]]
+        return self.all_angles[0:, self.output_an_index["Hip Angle"]]
 
     @property
     def knee_angles(self):
-        return self.all_angles[0:, self.output_index["Knee Angle"]]
+        return self.all_angles[0:, self.output_an_index["Knee Angle"]]
+
+    @property
+    def pelvis_axes(self):
+        return self.all_axes[0:, self.output_ax_index["Pelvis Axis"]]
+
+    @property
+    def hip_axes(self):
+        return self.all_axes[0:, self.output_ax_index["Hip Axis"]]
+
+    @property
+    def knee_axes(self):
+        return self.all_axes[0:, self.output_ax_index["Knee Axis"]]
 
     @staticmethod
     def pelvis_calc(pelv, measurements):
@@ -82,26 +95,31 @@ class CGM:
     @staticmethod
     def calc(data, methods, mappings):
         pel, hip, kne = methods
-        mmap, mi, oi, measurements = mappings
+        mmap, mi, an_oi, ax_oi, measurements = mappings
 
         # mechanism responsible for changing size of output array
-        result = np.zeros((len(data), len(oi), 3), dtype=int)
+        an_result = np.zeros((len(data), len(an_oi), 3), dtype=int)
+        ax_result = np.zeros((len(data), len(ax_oi), 4, 3), dtype=int)
 
         for i, frame in enumerate(data):
             pelv = frame[mi[mmap["PELV"]]]
             pelv_angle, pelv_axis = pel(pelv, measurements)
-            result[i][oi["Pelvis Angle"]] = pelv_angle
+            an_result[i][an_oi["Pelvis Angle"]] = pelv_angle
+            ax_result[i][ax_oi["Pelvis Axis"]] = pelv_axis
 
             rhip = frame[mi[mmap["RHIP"]]]
             lhip = frame[mi[mmap["LHIP"]]]
             hip_angle, hip_axis = hip(pelv_axis, rhip, lhip, measurements)
-            result[i][oi["Hip Angle"]] = hip_angle
+            an_result[i][an_oi["Hip Angle"]] = hip_angle
+            ax_result[i][ax_oi["Hip Axis"]] = hip_axis
 
             rkne = frame[mi[mmap["RKNE"]]]
             lkne = frame[mi[mmap["LKNE"]]]
             knee_angle, knee_axis = kne(hip_angle, rkne, lkne, measurements)
-            result[i][oi["Knee Angle"]] = knee_angle
-        return result
+            an_result[i][an_oi["Knee Angle"]] = knee_angle
+            ax_result[i][ax_oi["Knee Axis"]] = knee_axis
+
+        return an_result, ax_result
 
 
 class StaticCGM:
