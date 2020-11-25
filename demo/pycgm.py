@@ -134,15 +134,3 @@ class StaticCGM:
     def measurements(self):
         # Equivalent of getStatic
         return self._measurements
-
-    @staticmethod
-    def pelvis_calc_static(pelv):
-        return pelv
-
-    @staticmethod
-    def hip_calc_static(rhip, lhip):
-        return np.mean(np.array([rhip, lhip]), axis=0)
-
-    @staticmethod
-    def knee_calc_static(rkne, lkne):
-        return rkne - lkne
