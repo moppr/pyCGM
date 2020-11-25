@@ -2995,6 +2995,7 @@ def JointAngleCalc(frame,vsk):
     
     # Pelvis
         # origin
+    print(Pelvis_origin, Pelvis_vectors, sep="\n")
     pel_origin = Pelvis_origin
     pel_ox=pel_origin[0]
     pel_oy=pel_origin[1]

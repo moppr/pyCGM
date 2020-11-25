@@ -31,7 +31,7 @@ def loadData(dynamic_trial,static_trial,vsk_file):
 def main():
     #Load the filenames
     #pyCGM_Helpers.py contains some sample directory data based on github directories
-    dynamic_trial,static_trial,vsk_file,outputfile,CoM_output = pyCGM_Helpers.getfilenames(x=2) #change x to use different files
+    dynamic_trial,static_trial,vsk_file,outputfile,CoM_output = pyCGM_Helpers.getfilenames(x=1) #change x to use different files
     
     #Load a dynamic trial, static trial, and vsk (subject measurements)
     motionData,vskData,staticData = loadData(dynamic_trial,static_trial,vsk_file)
@@ -62,7 +62,7 @@ def main():
     
     #Write the results to a csv file, if wanted, 
     # otherwise could just return the angles/axis to some other function
-    pycgmIO.writeResult(kinematics,outputfile,angles=True,axis=False)    
+    pycgmIO.writeResult(kinematics,outputfile,angles=True,axis=True)    
     pycgmIO.writeKinetics(CoM_output,kinetics) #quick save of CoM
 
     return
